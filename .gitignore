@@ -1,0 +1,55 @@
+# ==============================
+# Environment files and secrets
+# ==============================
+.env
+*.env
+
+# ==============================
+# Node.js dependencies
+# ==============================
+node_modules/
+frontend/node_modules/
+
+# ==============================
+# Python cache
+# ==============================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ==============================
+# Python virtual environments
+# ==============================
+venv/
+.venv/
+env/
+
+# ==============================
+# Build files
+# ==============================
+dist/
+build/
+
+# ==============================
+# IDE files
+# ==============================
+.vscode/
+.idea/
+
+# ==============================
+# Operating system files
+# ==============================
+.DS_Store
+Thumbs.dbLens_Studio_5.23.2_win_setup.exe
+*.exe
+*.sql
+
+.env
+frontend/dist
+__pycache__
+# Local SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+.env

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-business-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-business-backend
+  template:
+    metadata:
+      labels:
+        app: ai-business-backend
+    spec:
+      containers:
+      - name: backend
+        image: ai-business-backend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: REDIS_URL
+          value: "redis://redis-service:6379/0"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: ai-business-backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: NodePort

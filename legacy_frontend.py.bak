@@ -1,0 +1,77 @@
+import streamlit as st
+import requests
+import pandas as pd
+
+st.set_page_config(page_title="AI Business Decision Intelligence Dashboard", layout="wide")
+
+st.title("AI Business Decision Intelligence Dashboard")
+
+# Sidebar Authentication
+st.sidebar.header("Authentication")
+username = st.sidebar.text_input("Username", value="admin")
+password = st.sidebar.text_input("Password", type="password", value="admin123")
+login_btn = st.sidebar.button("Login")
+
+if login_btn:
+    try:
+        res = requests.post("http://127.0.0.1:8000/api/v1/auth/login", json={"username": username, "password": password})
+        if res.status_code == 200:
+            st.sidebar.success("Logged in successfully!")
+        else:
+            st.sidebar.error("Invalid credentials")
+    except Exception as e:
+        st.sidebar.error(f"Connection failed: {e}")
+
+# Section 1: Upload Dataset
+st.header("1. Upload Dataset")
+uploaded_file = st.file_uploader("Choose a CSV or Excel file", type=["csv", "xlsx"])
+
+if uploaded_file is not None:
+    if st.button("Upload"):
+        try:
+            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
+            res = requests.post("http://127.0.0.1:8000/api/v1/data/upload", files=files)
+            if res.status_code == 200:
+                st.success("File uploaded successfully!")
+                st.session_state["uploaded"] = True
+                st.json(res.json())
+            else:
+                st.error(f"Upload failed. Status: {res.status_code}")
+                st.json(res.json())
+        except Exception as e:
+            st.error(f"Upload error: {e}")
+
+# Section 2: Data Insights & KPIs
+if st.session_state.get("uploaded", False):
+    st.header("2. Dataset Insights & KPIs")
+    try:
+        kpi_res = requests.get("http://127.0.0.1:8000/api/v1/kpis")
+        if kpi_res.status_code == 200:
+            kpis = kpi_res.json()
+            cols = st.columns(len(kpis))
+            for i, kpi in enumerate(kpis):
+                with cols[i]:
+                    st.metric(label=kpi["title"], value=kpi["value"])
+        else:
+            st.info("Upload a dataset to view automated business KPIs.")
+    except Exception as e:
+        st.warning(f"Could not fetch KPIs: {e}")
+
+# Section 3: AI Business Query Analyzer & Executor
+st.header("3. AI Business Query Analyzer & Executor")
+query = st.text_input("Ask a question about your data", value="SELECT * FROM data LIMIT 5")
+if st.button("Analyze & Execute"):
+    try:
+        res = requests.post("http://127.0.0.1:8000/api/v1/secure/analyze", json={"sql": query})
+        if res.status_code == 200:
+            st.success("Query validated via SQLGlot & executed via DuckDB!")
+            data_res = res.json()
+            st.json({k: v for k, v in data_res.items() if k != "data"})
+            if data_res.get("data"):
+                st.dataframe(pd.DataFrame(data_res["data"]))
+        else:
+            st.error(f"Analysis failed. Status: {res.status_code}")
+            st.json(res.json())
+    except Exception as e:
+        st.error(f"Analysis error: {e}")
+
